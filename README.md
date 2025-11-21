@@ -12,6 +12,7 @@ Learnings:
 * Using WebJars for loading static resources
 * Flyway DB migrations for database version control
 * Docker Compose Support
+* N+1 select problem and solution using Fetch Join
 
 Thymeleaf layout template:
 ```
@@ -49,5 +50,18 @@ spring.docker.compose.lifecycle-management=start_only
 ```
 Note: This is useful only for **local development purpose**. The connection configs mentioned in application.properties are overridden with values defined in the docker file.
 
+#### N+1 select problem and solution using Fetch Join:
+N+1 select problem occurs when an application needs to load a collection of entities and for each entity, it needs to load a related collection. This results in one query to load the main entities (N) and then N additional queries to load the related collections, leading to performance issues.
 
+To solve this problem, we can use Fetch Join in JPQL or Criteria API to load the related entities in a single query. This reduces the number of queries executed and improves performance.
+```
+@Query("select s from ShortUrlEntity s join fetch s.createdBy where s.isPrivate = false  order by s.createdAt desc")
+```
+Alternatively, we can use Entity Graphs along with initial query to specify which related entities should be loaded eagerly.
+```
+@Query("select s from ShortUrlEntity s  where s.isPrivate = false  order by s.createdAt desc")
+@EntityGraph(attributePaths = {"createdBy"})
+```
+Also set spring.jpa.open-in-view=false in application.properties to avoid lazy loading outside transaction scope.
+This ensures that all necessary data is loaded within the transaction, preventing additional queries during view rendering.
 
