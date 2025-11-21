@@ -11,7 +11,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "short_urls")
-public class ShortUrl {
+public class ShortUrlEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "short_urls_id_gen")
@@ -34,7 +34,7 @@ public class ShortUrl {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by")
-    private User createdBy;
+    private UserEntity createdBy;
 
     @ColumnDefault("0")
     @Column(name = "click_count", nullable = false)
@@ -43,4 +43,5 @@ public class ShortUrl {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
 }
