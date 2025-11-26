@@ -1,6 +1,7 @@
 package com.teqmonic.urlshortner.controller;
 
 import com.teqmonic.urlshortner.configs.ApplicationProperties;
+import com.teqmonic.urlshortner.exception.ShortUrlNotFoundException;
 import com.teqmonic.urlshortner.model.CreateShortUrlCmd;
 import com.teqmonic.urlshortner.model.CreateShortUrlForm;
 import com.teqmonic.urlshortner.model.ShortUrlDto;
@@ -12,10 +13,12 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Controller
@@ -56,5 +59,15 @@ public class HomeController {
 
         }
         return "redirect:/";
+    }
+
+    @GetMapping("/s/{shortKey}")
+    String redirectToOriginalUrl(@PathVariable String shortKey) {
+        Optional<ShortUrlDto> shortUrlDtoOptional = shortUrlService.accessShortUrl(shortKey);
+        if(shortUrlDtoOptional.isEmpty()) {
+            throw new ShortUrlNotFoundException("Invalid short key: "+shortKey);
+        }
+        ShortUrlDto shortUrlDto = shortUrlDtoOptional.get();
+        return "redirect:"+shortUrlDto.originalUrl();
     }
 }
