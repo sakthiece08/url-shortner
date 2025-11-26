@@ -11,9 +11,10 @@ public interface ShortUrlRepository extends JpaRepository<ShortUrlEntity, Long> 
 
     //List<ShortUrlEntity> findByIsPrivateFalseOrderByCreatedAtDesc();
 
-   // @Query("select s from ShortUrlEntity s join fetch s.createdBy where s.isPrivate = false  order by s.createdAt desc")
-   @Query("select s from ShortUrlEntity s  where s.isPrivate = false  order by s.createdAt desc")
-   @EntityGraph(attributePaths = {"createdBy"})
+   @Query("select s from ShortUrlEntity s left join fetch s.createdBy where s.isPrivate = false  order by s.createdAt desc")
+   //@Query("select s from ShortUrlEntity s  where s.isPrivate = false  order by s.createdAt desc")
+   //@EntityGraph(attributePaths = {"createdBy"})
     List<ShortUrlEntity> findPublicShortUrls();
 
+    boolean existsByShortKey(String shortKey);
 }
