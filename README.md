@@ -13,6 +13,7 @@ Learnings:
 * Flyway DB migrations for database version control
 * Docker Compose Support
 * N+1 select problem and solution using Fetch Join
+* Spring Boot Security
 
 Thymeleaf layout template:
 ```
@@ -65,3 +66,86 @@ Alternatively, we can use Entity Graphs along with initial query to specify whic
 Also set spring.jpa.open-in-view=false in application.properties to avoid lazy loading outside transaction scope.
 This ensures that all necessary data is loaded within the transaction, preventing additional queries during view rendering.
 
+#### Spring Boot Security:
+
+Add spring-boot-starter-security dependency in pom.xml
+Configure security settings in application.properties
+
+_**Note:** Only for Local dev purpose, we can set default user credentials in application.properties_
+```
+spring.security.user.name=sakthi
+spring.security.user.password=sakthi
+spring.security.user.roles=USER, ADMIN
+```
+With the above configurations Spring Security will display a default login page when hitting http://localhost:8080
+But we need to customize the authorizations where we want to allow few endpoints without authentication and few are protected.
+
+Create a SecurityConfig class to customize the security settings:
+```
+@Component
+@EnableWebSecurity
+public class WebSecurityConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // Auth runs from top to bottom. First match applies. Default rule is always protected.
+        http.csrf(CsrfConfigurer::disable)
+                .authorizeHttpRequests(auth ->
+                        auth.requestMatchers(
+                                "/error", "/webjars/**", "/css/**", "/js/**", "/images/**",
+                                "/", "/short-urls", "/s/**", "/register", "/login")
+                                .permitAll()
+                                .requestMatchers("/my-urls").authenticated()
+                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
+                );
+        return http.build();
+    }
+}
+```
+#### Fetch User credentials from Database
+
+Implement UserDetailsService interface to load user-specific data.
+```
+@RequiredArgsConstructor
+@Service
+public class SecurityUserDetailService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserEntity userEntity = userRepository.findByName(username).orElseThrow(() ->
+                new UsernameNotFoundException("User with name " + username + " not found"));
+
+        return new User(
+                userEntity.getName(),
+                userEntity.getPassword(),
+                List.of(new SimpleGrantedAuthority(userEntity.getRole().name()))
+        );
+    }
+}
+```
+* When a user tries to log in, Spring Security will use this service to fetch user details from the database and authenticate the user accordingly.
+* No need to configure this service explicitly as Spring Boot auto-detects the implementation of UserDetailsService and uses it for authentication.
+
+Refer PasswordUtility class to hash the password before saving it to the database. User will login using plain text password which will be matched with the hashed password stored in the database.
+
+We can get authenticated user details (Principle) using:
+``` 
+Authentication authentication =  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+ ```
