@@ -6,6 +6,7 @@ import com.teqmonic.urlshortner.model.CreateShortUrlCmd;
 import com.teqmonic.urlshortner.model.CreateShortUrlForm;
 import com.teqmonic.urlshortner.model.ShortUrlDto;
 import com.teqmonic.urlshortner.service.ShortUrlService;
+import com.teqmonic.urlshortner.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -25,7 +26,8 @@ import java.util.Optional;
 public class HomeController {
 
    private final ShortUrlService shortUrlService;
-    private final ApplicationProperties properties;
+   private final SecurityUtil securityUtil;
+   private final ApplicationProperties properties;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -33,7 +35,7 @@ public class HomeController {
         model.addAttribute("title", "URL Shortener - Thymeleaf");
         model.addAttribute("shortUrls", shortUrls);
         model.addAttribute("baseUrl", "http://localhost:8090");
-        model.addAttribute("createShortUrlForm", new CreateShortUrlForm(""));
+        model.addAttribute("createShortUrlForm", new CreateShortUrlForm("", false, 0L));
         return "index";
     }
 
@@ -50,7 +52,7 @@ public class HomeController {
         }
 
         try {
-            CreateShortUrlCmd cmd = new CreateShortUrlCmd(form.originalUrl());
+            CreateShortUrlCmd cmd = new CreateShortUrlCmd(form.originalUrl(), form.isPrivate(), form.expirationInDays(), securityUtil.getCurrentUserName());
             var shortUrlDto = shortUrlService.createShortUrl(cmd);
             redirectAttributes.addFlashAttribute("successMessage", "Short URL created successfully "+
                     properties.baseUrl()+"/s/"+shortUrlDto.shortKey());
@@ -63,7 +65,7 @@ public class HomeController {
 
     @GetMapping("/s/{shortKey}")
     String redirectToOriginalUrl(@PathVariable String shortKey) {
-        Optional<ShortUrlDto> shortUrlDtoOptional = shortUrlService.accessShortUrl(shortKey);
+        Optional<ShortUrlDto> shortUrlDtoOptional = shortUrlService.accessShortUrl(shortKey, securityUtil.getCurrentUserName());
         if(shortUrlDtoOptional.isEmpty()) {
             throw new ShortUrlNotFoundException("Invalid short key: "+shortKey);
         }

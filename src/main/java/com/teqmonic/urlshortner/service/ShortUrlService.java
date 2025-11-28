@@ -5,6 +5,7 @@ import com.teqmonic.urlshortner.model.CreateShortUrlCmd;
 import com.teqmonic.urlshortner.model.ShortUrlDto;
 import com.teqmonic.urlshortner.model.entities.ShortUrlEntity;
 import com.teqmonic.urlshortner.repository.ShortUrlRepository;
+import com.teqmonic.urlshortner.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class ShortUrlService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final ShortUrlRepository shortUrlRepository;
+    private final UserRepository userRepository;
     private final EntityMapper entityMapper;
     private final ApplicationProperties properties;
 
@@ -45,10 +47,16 @@ public class ShortUrlService {
         var shortUrl = new ShortUrlEntity();
         shortUrl.setOriginalUrl(cmd.originalUrl());
         shortUrl.setShortKey(shortKey);
-        shortUrl.setCreatedBy(null);
-        shortUrl.setIsPrivate(false);
+        if(cmd.userName() == null) {
+            shortUrl.setCreatedBy(null);
+            shortUrl.setIsPrivate(false);
+            shortUrl.setExpiresAt(Instant.now().plus(properties.defaultExpiryInDays(), DAYS));
+        } else {
+            shortUrl.setCreatedBy(userRepository.findByName(cmd.userName()).orElseThrow());
+            shortUrl.setIsPrivate(cmd.isPrivate());
+            shortUrl.setExpiresAt(cmd.expirationInDays() != null ?  Instant.now().plus(cmd.expirationInDays(), DAYS) : null);
+        }
         shortUrl.setClickCount(0L);
-        shortUrl.setExpiresAt(Instant.now().plus(properties.defaultExpiryInDays(), DAYS));
         shortUrl.setCreatedAt(Instant.now());
         shortUrlRepository.save(shortUrl);
         return entityMapper.toShortUrlDto(shortUrl);
@@ -71,13 +79,18 @@ public class ShortUrlService {
     }
 
     @Transactional
-    public Optional<ShortUrlDto> accessShortUrl(String shortKey) {
+    public Optional<ShortUrlDto> accessShortUrl(String shortKey, String userName) {
         Optional<ShortUrlEntity> shortUrlOptional = shortUrlRepository.findByShortKey(shortKey);
         if(shortUrlOptional.isEmpty()) {
             return Optional.empty();
         }
         ShortUrlEntity shortUrl = shortUrlOptional.get();
         if(shortUrl.getExpiresAt() != null && shortUrl.getExpiresAt().isBefore(Instant.now())) {
+            return Optional.empty();
+        }
+
+        if(shortUrl.getIsPrivate() != null && shortUrl.getIsPrivate() && shortUrl.getCreatedBy() != null &&
+                !shortUrl.getCreatedBy().getName().equalsIgnoreCase(userName)) {
             return Optional.empty();
         }
         shortUrl.setClickCount(shortUrl.getClickCount()+1);
