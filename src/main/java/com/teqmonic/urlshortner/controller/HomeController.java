@@ -12,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -30,8 +27,8 @@ public class HomeController {
    private final ApplicationProperties properties;
 
     @GetMapping("/")
-    public String home(Model model) {
-        List<ShortUrlDto> shortUrls = shortUrlService.findPublicShortUrls();
+    public String home(@RequestParam(defaultValue = "1", required = false) int pageNo, Model model) {
+        List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls(pageNo);
         model.addAttribute("title", "URL Shortener - Thymeleaf");
         model.addAttribute("shortUrls", shortUrls);
         model.addAttribute("baseUrl", "http://localhost:8090");
@@ -45,7 +42,7 @@ public class HomeController {
                           RedirectAttributes redirectAttributes,
                           Model model) {
         if(bindingResult.hasErrors()) {
-            List<ShortUrlDto> shortUrls = shortUrlService.findPublicShortUrls();
+            List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls(1);
             model.addAttribute("shortUrls", shortUrls);
             model.addAttribute("baseUrl", properties.baseUrl());
             return "index";

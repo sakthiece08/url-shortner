@@ -14,6 +14,7 @@ Learnings:
 * Docker Compose Support
 * N+1 select problem and solution using Fetch Join
 * Spring Boot Security
+* Pagination using Spring Data JPA
 
 Thymeleaf layout template:
 ```
@@ -149,3 +150,21 @@ We can get authenticated user details (Principle) using:
 ``` 
 Authentication authentication =  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
  ```
+#### Pagination using Spring Data JPA
+
+Spring Data JPA provides built-in support for pagination through the Pageable interface and Page<T> return type.
+
+```
+Interface: JpaRepository extends ListPagingAndSortingRepository extends PagingAndSortingRepository : Page<T> findAll(Pageable pageable);
+
+  @Query("select s from ShortUrlEntity s left join fetch s.createdBy where s.isPrivate = false ")
+   Page<ShortUrlEntity> findPagedPublicShortUrls(Pageable pageable);
+```
+This will internally generate 2 queries to get  data and to get  total count for pagination.
+```
+Hibernate: select sue1_0.id,sue1_0.click_count,sue1_0.created_at,sue1_0.created_by,cb1_0.id,cb1_0.created_at,cb1_0.email,cb1_0.name,cb1_0.password,cb1_0.role,sue1_0.expires_at,sue1_0.is_private,sue1_0.original_url,sue1_0.short_key from short_urls sue1_0 left join users cb1_0 on cb1_0.id=sue1_0.created_by where sue1_0.is_private=false 
+order by sue1_0.created_at fetch first ? rows only
+Hibernate: select count(*) from short_urls sue1_0 where sue1_0.is_private=false
+```
+* First query to fetch data will have: **fetch first ? rows only**
+* Subsequent queries to fetch data : **offset ? rows fetch first ? rows only**

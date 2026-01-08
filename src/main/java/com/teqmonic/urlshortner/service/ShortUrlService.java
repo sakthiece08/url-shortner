@@ -7,6 +7,10 @@ import com.teqmonic.urlshortner.model.entities.ShortUrlEntity;
 import com.teqmonic.urlshortner.repository.ShortUrlRepository;
 import com.teqmonic.urlshortner.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,8 +35,12 @@ public class ShortUrlService {
     private final EntityMapper entityMapper;
     private final ApplicationProperties properties;
 
-    public List<ShortUrlDto> findPublicShortUrls() {
-        return shortUrlRepository.findPublicShortUrls().stream().map(entityMapper::toShortUrlDto).toList();
+    public List<ShortUrlDto> findAllPublicShortUrls(int pageNo) {
+        pageNo = pageNo > 1 ? pageNo - 1 : 0;
+        // In Spring data, page number is zero based
+        Pageable pageable = PageRequest.of(pageNo, properties.homePageShortUrlLimit(), Sort.by(Sort.Direction.ASC, "createdAt"));
+        //Page<ShortUrlEntity> shortUrlEntities = shortUrlRepository.findAll(pageable);
+        return shortUrlRepository.findPagedPublicShortUrls(pageable).map(entityMapper::toShortUrlDto).toList();
     }
 
     @Transactional // overwrite readOnly as false
