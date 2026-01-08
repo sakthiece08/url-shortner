@@ -2,6 +2,7 @@ package com.teqmonic.urlshortner.service;
 
 import com.teqmonic.urlshortner.configs.ApplicationProperties;
 import com.teqmonic.urlshortner.model.CreateShortUrlCmd;
+import com.teqmonic.urlshortner.model.PagedResult;
 import com.teqmonic.urlshortner.model.ShortUrlDto;
 import com.teqmonic.urlshortner.model.entities.ShortUrlEntity;
 import com.teqmonic.urlshortner.repository.ShortUrlRepository;
@@ -35,12 +36,13 @@ public class ShortUrlService {
     private final EntityMapper entityMapper;
     private final ApplicationProperties properties;
 
-    public List<ShortUrlDto> findAllPublicShortUrls(int pageNo) {
+    public PagedResult<ShortUrlDto> findAllPublicShortUrls(int pageNo) {
         pageNo = pageNo > 1 ? pageNo - 1 : 0;
         // In Spring data, page number is zero based
         Pageable pageable = PageRequest.of(pageNo, properties.homePageShortUrlLimit(), Sort.by(Sort.Direction.ASC, "createdAt"));
         //Page<ShortUrlEntity> shortUrlEntities = shortUrlRepository.findAll(pageable);
-        return shortUrlRepository.findPagedPublicShortUrls(pageable).map(entityMapper::toShortUrlDto).toList();
+        Page<ShortUrlDto> shortUrlDtoPage = shortUrlRepository.findPagedPublicShortUrls(pageable).map(entityMapper::toShortUrlDto);
+        return PagedResult.from(shortUrlDtoPage);
     }
 
     @Transactional // overwrite readOnly as false

@@ -4,6 +4,7 @@ import com.teqmonic.urlshortner.configs.ApplicationProperties;
 import com.teqmonic.urlshortner.exception.ShortUrlNotFoundException;
 import com.teqmonic.urlshortner.model.CreateShortUrlCmd;
 import com.teqmonic.urlshortner.model.CreateShortUrlForm;
+import com.teqmonic.urlshortner.model.PagedResult;
 import com.teqmonic.urlshortner.model.ShortUrlDto;
 import com.teqmonic.urlshortner.service.ShortUrlService;
 import com.teqmonic.urlshortner.util.SecurityUtil;
@@ -27,13 +28,16 @@ public class HomeController {
    private final ApplicationProperties properties;
 
     @GetMapping("/")
-    public String home(@RequestParam(defaultValue = "1", required = false) int pageNo, Model model) {
-        List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls(pageNo);
-        model.addAttribute("title", "URL Shortener - Thymeleaf");
-        model.addAttribute("shortUrls", shortUrls);
-        model.addAttribute("baseUrl", "http://localhost:8090");
+    public String home(@RequestParam(defaultValue = "1", required = false) int page, Model model) {
+        addShortlUrlsDatatoModel(page, model, properties.baseUrl());
         model.addAttribute("createShortUrlForm", new CreateShortUrlForm("", false, 0L));
         return "index";
+    }
+
+    private void addShortlUrlsDatatoModel(int page, Model model, String url) {
+        PagedResult<ShortUrlDto> pagedResult = shortUrlService.findAllPublicShortUrls(page);
+        model.addAttribute("shortUrls", pagedResult);
+        model.addAttribute("baseUrl", url);
     }
 
     @PostMapping("/short-urls")
@@ -42,9 +46,7 @@ public class HomeController {
                           RedirectAttributes redirectAttributes,
                           Model model) {
         if(bindingResult.hasErrors()) {
-            List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls(1);
-            model.addAttribute("shortUrls", shortUrls);
-            model.addAttribute("baseUrl", properties.baseUrl());
+            addShortlUrlsDatatoModel(1, model, properties.baseUrl());
             return "index";
         }
 
