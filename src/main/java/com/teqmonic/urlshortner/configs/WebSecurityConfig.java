@@ -2,6 +2,9 @@ package com.teqmonic.urlshortner.configs;
 
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @EnableWebSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     @Bean
@@ -28,9 +32,11 @@ public class WebSecurityConfig {
                                 "/error", "/webjars/**", "/css/**", "/js/**", "/images/**",
                                 "/", "/short-urls", "/s/**", "/register", "/login")
                                 .permitAll()
-                                .requestMatchers("/my-urls").authenticated()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                // .requestMatchers("/my-urls").authenticated()
+                                //.requestMatchers("/admin/**").hasRole("ADMIN")
                                 .anyRequest().authenticated()
+
+                        // Role specific access has been moved to method level using @RolesAllowed
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -43,5 +49,10 @@ public class WebSecurityConfig {
                         .permitAll()
                 );
         return http.build();
+    }
+
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("ROLE_ADMIN > ROLE_USER");
     }
 }

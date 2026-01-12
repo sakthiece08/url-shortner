@@ -108,4 +108,22 @@ public class ShortUrlService {
         return shortUrlOptional.map(entityMapper::toShortUrlDto);
     }
 
+    public PagedResult<ShortUrlDto> getUserShortUrls(Long userId, int page, int pageSize) {
+        Pageable pageable = getPageable(page, pageSize);
+        var shortUrlsPage = shortUrlRepository.findByCreatedById(userId, pageable)
+                .map(entityMapper::toShortUrlDto);
+        return PagedResult.from(shortUrlsPage);
+    }
+
+    @Transactional
+    public void deleteUserShortUrls(List<Long> ids, Long userId) {
+        if (ids != null && !ids.isEmpty() && userId != null) {
+            shortUrlRepository.deleteByIdInAndCreatedById(ids, userId);
+        }
+    }
+
+    private Pageable getPageable(int page, int size) {
+        page = page > 1 ? page - 1: 0;
+        return PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+    }
 }

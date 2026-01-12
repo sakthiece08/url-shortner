@@ -20,6 +20,7 @@ public record ApplicationProperties(
         @DefaultValue("true")
         boolean validateOriginalUrl,
 
-        int homePageShortUrlLimit
+        int homePageShortUrlLimit,
+        int pageSize
 ) {
 }

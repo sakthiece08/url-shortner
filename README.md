@@ -119,6 +119,15 @@ public class WebSecurityConfig {
     }
 }
 ```
+**Role Hierarchy**
+Helps to define a hierarchy of roles where higher roles inherit the permissions of lower roles. So we don't need to explicitly assign multiple roles to a user.
+For Admin user to assign both ROLE_ADMIN and ROLE_USER, we can define the role hierarchy as below:
+```
+  @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("ROLE_ADMIN > ROLE_USER");
+    }
+```
 #### Fetch User credentials from Database
 
 Implement UserDetailsService interface to load user-specific data.
