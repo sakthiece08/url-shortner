@@ -45,6 +45,12 @@ public class ShortUrlService {
         return PagedResult.from(shortUrlDtoPage);
     }
 
+    public PagedResult<ShortUrlDto> findAllShortUrls(int page, int pageSize) {
+        Pageable pageable = getPageable(page, pageSize);
+        var shortUrlsPage =  shortUrlRepository.findAllShortUrls(pageable).map(entityMapper::toShortUrlDto);
+        return PagedResult.from(shortUrlsPage);
+    }
+
     @Transactional // overwrite readOnly as false
     public ShortUrlDto createShortUrl(CreateShortUrlCmd cmd) {
         if(properties.validateOriginalUrl()) {
