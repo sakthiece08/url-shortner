@@ -2,10 +2,7 @@ package com.teqmonic.urlshortner.controller;
 
 import com.teqmonic.urlshortner.configs.ApplicationProperties;
 import com.teqmonic.urlshortner.exception.ShortUrlNotFoundException;
-import com.teqmonic.urlshortner.model.CreateShortUrlCmd;
-import com.teqmonic.urlshortner.model.CreateShortUrlForm;
-import com.teqmonic.urlshortner.model.PagedResult;
-import com.teqmonic.urlshortner.model.ShortUrlDto;
+import com.teqmonic.urlshortner.model.*;
 import com.teqmonic.urlshortner.service.ShortUrlService;
 import com.teqmonic.urlshortner.util.SecurityUtil;
 import jakarta.annotation.security.RolesAllowed;
@@ -79,6 +76,13 @@ public class HomeController {
     String login() {
         return "login";
     }
+
+/*    @GetMapping("/register")
+    public String registerForm(Model model) {
+        model.addAttribute("paginationUrl", "/");
+        model.addAttribute("user", new RegisterUserRequest("","",""));
+        return "register";
+    }*/
 
     @GetMapping("/my-urls")
     public String showUserUrls(

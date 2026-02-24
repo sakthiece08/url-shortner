@@ -30,7 +30,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(
                                 "/error", "/webjars/**", "/css/**", "/js/**", "/images/**",
-                                "/", "/short-urls", "/s/**", "/register", "/login")
+                                "/", "/short-urls", "/s/**", "/login", "/register")
                                 .permitAll()
                                 // .requestMatchers("/my-urls").authenticated()
                                 //.requestMatchers("/admin/**").hasRole("ADMIN")

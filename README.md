@@ -15,6 +15,7 @@ Learnings:
 * N+1 select problem and solution using Fetch Join
 * Spring Boot Security
 * Pagination using Spring Data JPA
+* JDBC Client Implementation using Spring Boot
 
 Thymeleaf layout template:
 ```
@@ -177,3 +178,10 @@ Hibernate: select count(*) from short_urls sue1_0 where sue1_0.is_private=false
 ```
 * First query to fetch data will have: **fetch first ? rows only**
 * Subsequent queries to fetch data : **offset ? rows fetch first ? rows only**
+
+#### JDBC Client Implementation using Spring Boot
+Spring Boot provides support for JDBC through the spring-boot-starter-jdbc dependency. This allows us to interact with the database using plain SQL queries and the JdbcTemplate class.
+
+Lessons:
+* For JdbcClient implementation, we need to write SQL queries manually and map the result set to our entity classes. This gives us more control over the database interactions but requires more boilerplate code compared to using JPA.
+* @Id column of the table should have default value to get nextVal from sequence in the DDL of the table. In case of JPA implementation this is handled by the framework and we don't need to worry about it. But in case of JDBC implementation we need to handle it manually.
