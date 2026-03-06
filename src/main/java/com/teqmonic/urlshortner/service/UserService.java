@@ -30,7 +30,12 @@ public class UserService {
         userEntity.setName(cmd.name());
         userEntity.setRole(cmd.role());
         userEntity.setCreatedAt(Instant.now());
-        userRepository.save(userEntity);
+        try {
+            userRepository.save(userEntity);
+        } catch (Exception e) {
+            log.error("Error saving user entity: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create user", e);
+        }
     }
 
 

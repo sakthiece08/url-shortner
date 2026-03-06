@@ -185,3 +185,5 @@ Spring Boot provides support for JDBC through the spring-boot-starter-jdbc depen
 Lessons:
 * For JdbcClient implementation, we need to write SQL queries manually and map the result set to our entity classes. This gives us more control over the database interactions but requires more boilerplate code compared to using JPA.
 * @Id column of the table should have default value to get nextVal from sequence in the DDL of the table. In case of JPA implementation this is handled by the framework and we don't need to worry about it. But in case of JDBC implementation we need to handle it manually.
+* Using @Controller Vs @RestController : @Controller is used to render HTML views using Thymeleaf templates, while @RestController is used to create RESTful APIs that return JSON or XML responses. In this application, we use @Controller for handling web requests and rendering views, and @RestController for handling API requests and returning JSON responses.
+
