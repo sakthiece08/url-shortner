@@ -105,7 +105,8 @@ public class ShortUrlService {
             return Optional.empty();
         }
 
-        if(shortUrl.getIsPrivate() != null && shortUrl.getIsPrivate() && shortUrl.getCreatedBy() != null &&
+        if(shortUrl.getIsPrivate() != null && shortUrl.getIsPrivate()
+                && shortUrl.getCreatedBy() != null &&
                 !shortUrl.getCreatedBy().getName().equalsIgnoreCase(userName)) {
             return Optional.empty();
         }
